@@ -81,6 +81,9 @@ function Stop-Watchdog {
     try {
         $task = Get-ScheduledTask -TaskName $WATCHDOG_TASK -ErrorAction SilentlyContinue
         if ($task -and $task.State -ne "Disabled") {
+            # Stop any running instance FIRST, then disable
+            Stop-ScheduledTask -TaskName $WATCHDOG_TASK -ErrorAction SilentlyContinue | Out-Null
+            Start-Sleep -Milliseconds 500
             Disable-ScheduledTask -TaskName $WATCHDOG_TASK | Out-Null
             $notify.ShowBalloonTip(4000, "OpenClaw", "Watchdog STOPPED -- gateway will not auto-restart", [System.Windows.Forms.ToolTipIcon]::Warning)
             $script:watchdogPaused = $true
